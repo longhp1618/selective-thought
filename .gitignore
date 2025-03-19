@@ -1,0 +1,18 @@
+*.pth
+*.ipynb
+*.tar
+__pycache__/*
+*.csv
+*.pt
+# *.txt
+*.jsonl
+*.json
+*.DS_Store
+*.xml
+*.html
+*.sh
+*.pdf
+*.pyc
+*.safetensors
+*.model
+*.bin

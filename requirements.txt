@@ -1,0 +1,12 @@
+flash_attention==1.0.0
+kneed==0.8.5
+latex2sympy2==1.9.1
+numpy==2.2.3
+pandas==2.2.3
+peft==0.13.2
+regex==2024.9.11
+sympy==1.13.1
+torch==2.5.1
+tqdm==4.66.4
+transformers==4.48.3
+vllm==0.7.3
