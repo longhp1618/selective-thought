@@ -7,18 +7,18 @@ from data_module import GSM8KForLLAMA
 import torch
 import time
 
-def train(epoch, drop_rate):
-    config_path = "configs/sft.yaml"
+def train(stage, drop_rate):
+    config_path = "configs/icot.yaml"
     parser = transformers.HfArgumentParser(TrainingArguments)
 
     cfg = OmegaConf.load(config_path)
 
     trainer_args_dict = OmegaConf.to_container(cfg.trainer)
     training_args = parser.parse_dict(trainer_args_dict)[0]
-    # if epoch == 0:
-    #     model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-    # else:
-    model_name = training_args.output_dir
+    if stage == 0:
+        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+    else:
+        model_name = training_args.output_dir
 
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -42,9 +42,8 @@ def train(epoch, drop_rate):
     time.sleep(30)
 
 if __name__ == "__main__":
-    num_epochs = 1
-    # rate = 1/num_epochs
-    for epoch in range(num_epochs):
-        # drop_rate = rate*(epoch+1)
-        drop_rate = 1
-        train(epoch, drop_rate)
+    num_stages = 20
+    rate = 1/num_stages
+    for stage in range(num_stages):
+        drop_rate = rate*(stage+1)
+        train(stage, drop_rate)

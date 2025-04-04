@@ -38,9 +38,9 @@ gsm8k_input, gsm8k_output = read_gsm8k(train=train)
 input_prompts = [
             tokenizer.apply_chat_template(
                 [
-        {"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{{}}."},
-        {"role": "user", "content": prompt},
-    ] ,
+        # {"role": "system", "content": ""},
+        {"role": "user", "content": f"Please reason step by step, and put your final answer within \\boxed{{}}. {prompt}"},
+    ],
                 tokenize=False,
                 add_generation_prompt=True,
             )

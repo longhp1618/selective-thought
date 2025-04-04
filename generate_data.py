@@ -1,6 +1,6 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]='0,1,2,3'
-tensor_parallel_size = 4
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
+tensor_parallel_size = 1
 # os.environ["CUDA_VISIBLE_DEVICES"]='0'
 # tensor_parallel_size = 1
 import numpy as np
@@ -17,6 +17,8 @@ from tqdm import tqdm
 
 import sys
 import json
+
+
 MAX_INT = sys.maxsize
 
 MAX_INT
@@ -50,9 +52,9 @@ elif data_name == 'math':
 input_prompts = [
             tokenizer.apply_chat_template(
                 [
-        {"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{{}}."},
-        {"role": "user", "content": prompt},
-    ] ,
+        # {"role": "system", "content": ""},
+        {"role": "user", "content": f"Please reason step by step, and put your final answer within \\boxed{{}}. {prompt}"},
+    ],
                 tokenize=False,
                 add_generation_prompt=True,
             )
@@ -76,12 +78,12 @@ def generating():
 
         save_items(all_samples)
 
+
 def save_items(all_samples):
     preds = np.array(all_samples).T.tolist()
 
 
     items = [{'prompt': input_prompt, 'gold_ans': gold_ans, 'preds': sub_preds} for input_prompt, gold_ans, sub_preds in zip(input_prompts, gold_anses, preds)]
-
 
 
     if not os.path.exists(f"synthesized_data/{data_name}"):

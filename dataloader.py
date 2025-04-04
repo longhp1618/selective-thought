@@ -120,9 +120,9 @@ class DecoderDataset(Dataset):
 
         instruction_tokens = self.tokenizer.apply_chat_template(
                 [
-            {"role": "system", "content": "Please reason step by step, and put your final answer within \\boxed{{}}."},
-            {"role": "user", "content": instruction},
-        ] ,
+        # {"role": "system", "content": ""},
+        {"role": "user", "content": f"Please reason step by step, and put your final answer within \\boxed{{}}. {prompt}"},
+    ],
                     tokenize=True,
                     add_generation_prompt=True,
                 )

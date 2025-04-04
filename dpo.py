@@ -17,7 +17,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # %%
 data_files = {
-        'train': "synthesized_data/dpo_epoch0.jsonl"
+        'train': "synthesized_data/math/dpo.jsonl"
     }
 data = load_dataset("json", data_files=data_files)
 

@@ -23,6 +23,12 @@ def read_deepscaler():
     dataset = load_dataset("agentica-org/DeepScaleR-Preview-Dataset", split='train')
     return dataset['problem'], dataset['answer']
 
+def read_math500():
+    dataset = load_dataset("HuggingFaceH4/MATH-500")
+    test_inputs = dataset.data['test']['problem'].to_pylist()
+    test_outputs = dataset.data['test']['solution'].to_pylist()
+    return test_inputs, test_outputs
+
 def read_MATH(train=False):
     data = {"problem": [], 'level': [], 'type': [], 'solution': []}
     if train:
@@ -50,3 +56,58 @@ def read_MATH(train=False):
 
 
     return test_input, test_output
+
+def read_SVAMP():
+    df = pd.read_json('datasets/SVAMP.json')
+    df['problem'] = df['Body'] + " " + df['Question']
+    df['cot_output'] = df['Answer'].apply(str)
+
+    svamp_input = df['problem'].tolist()
+    svamp_output = df['cot_output'].tolist()
+
+    return svamp_input, svamp_output
+
+
+def read_ASDIV():
+    # Parse the XML file
+    tree = ET.parse('datasets/ASDiv.xml')  # Replace 'file.xml' with the path to your XML file
+    root = tree.getroot()
+
+    # Extract data
+    data = []
+    for problem in root.find('ProblemSet'):
+        problem_id = problem.attrib.get('ID')
+        grade = problem.attrib.get('Grade')
+        source = problem.attrib.get('Source')
+        body = problem.find('Body').text
+        question = problem.find('Question').text
+        solution_type = problem.find('Solution-Type').text
+        answer = problem.find('Answer').text
+        formula = problem.find('Formula').text
+
+        data.append(
+            {
+                'Problem ID': problem_id,
+                'Grade': grade,
+                'Source': source,
+                'Body': body,
+                'Question': question,
+                'Solution Type': solution_type,
+                'Answer': answer,
+                'Formula': formula,
+            }
+        )
+
+    # Convert to pandas DataFrame
+    df = pd.DataFrame(data)
+    df = df[df['Answer'].apply(lambda x: str(x).find(';') == -1)]  # remove problems asking multiple answers
+
+    df['problem'] = df['Body'] + " " + df['Question']
+    df['cot_output'] = df['Answer'].apply(lambda x: str(x).split()[0])
+
+    asdiv_input = df['problem'].tolist()
+
+
+    asdiv_output = df['cot_output'].tolist()
+
+    return asdiv_input, asdiv_output
