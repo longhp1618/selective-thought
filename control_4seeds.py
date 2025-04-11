@@ -28,7 +28,7 @@ data_name = args.data_name
 train_task = args.train_task
 os.environ["CUDA_VISIBLE_DEVICES"]= str(args.device)
 
-model_name = f"saved_models/{train_task}/icot-100-1"
+model_name = f"saved_models/{train_task}/control_icot-1-1"
 # model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 save_name = model_name

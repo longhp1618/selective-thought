@@ -112,14 +112,19 @@ class GSM8KForLLAMA:
         self.data_collator = DataCollatorForLLAMA(tokenizer=tokenizer)
 
     @classmethod
-    def process_question(cls, question):
+    def process_question(cls, question, drop_rate):
         # question_w_template = (
         #     "Below is an instruction that describes a task. "
         #     "Write a response that appropriately completes the request.\n\n"
         #     f"### Instruction:\n{question}\n\n### Response:\n"
         # )
         # return question_w_template
-        return question
+        if drop_rate != 0:
+            ratio = round(drop_rate*100)
+            new_question = question.replace('<｜Assistant｜>', f" Skip the first {ratio}% of thinking tokens.<｜Assistant｜>")
+            return new_question #question
+        else:     
+            return question
     
     @classmethod
     def process_answer(cls, completion, t, drop_rate):
@@ -178,7 +183,7 @@ class GSM8KForLLAMA:
 
     def preprocess(self, examples):
         batch = {}
-        prompt = self.process_question(examples["question"])
+        prompt = self.process_question(examples["question"], self.drop_rate)
         chosen = self.process_answer(examples["answer"], self.tokenizer, self.drop_rate)
         prompt_tokens = self.tokenizer(prompt, add_special_tokens=False)
         prompt_tokens = {f"prompt_{k}": v for k, v in prompt_tokens.items()}

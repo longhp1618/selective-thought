@@ -9,8 +9,9 @@ def create_ans_rea_mask(text, tokenizer):
     offset_mapping = encoding['offset_mapping']
 
     # Initialize mask list with 0's
-    rea_mask = [0] * len(tokens)
-    ans_mask = [0] * len(tokens)
+    rea_mask = [0] * len(tokens) # indicating hidden state possition corresponding to generating reasoning tokens enclosed <think> and </think> 
+    ans_mask = [0] * len(tokens) # indicating hidden state possition corresponding to generating answer tokens inside the final boxed{}
+    # short_cot_mask = [0] * len(tokens) # indicating all tokens after </think> including </think>
 
     # Mark reasoning tokens (mask value 1):
     # Find the position of the "</think>" marker in the text
@@ -20,6 +21,9 @@ def create_ans_rea_mask(text, tokenizer):
         for i, (start, end) in enumerate(offset_mapping):
             if end <= think_pos:
                 rea_mask[i] = 1
+
+            # if end > think_pos:
+            #     short_cot_mask[i] = 1
 
     # Mark answer tokens (mask value 2) only for the final \boxed{...} block:
     # Use re.finditer to find all occurrences, then take the last one.
@@ -32,10 +36,9 @@ def create_ans_rea_mask(text, tokenizer):
             if start >= ans_start and end <= ans_end:
                 ans_mask[i] = 1
 
-    rea_mask = rea_mask[1:] + [0.]
-    ans_mask = ans_mask[1:] + [0.]
+    # short_cot_mask = short_cot_mask[1:] + [0.]
     
-    return tokens, rea_mask, ans_mask
+    return tokens, rea_mask, ans_mask #, short_cot_mask
 
 def pad_batch(sequences, pad_value, batch_first=True, padding_side='right'):
     """
@@ -91,12 +94,17 @@ def collate_fn(batch, MAX_LEN, tokenizer):
         rea_mask = [item["rea_mask"][:MAX_LEN] for item in batch]
         rea_mask = pad_batch(rea_mask, batch_first=True, pad_value=0, padding_side=tokenizer.padding_side)
         rea_mask = rea_mask[:, :MAX_LEN]
+        # short_cot_mask = [item["rea_mask"][:MAX_LEN] for item in batch]
+        # short_cot_mask = pad_batch(short_cot_mask, batch_first=True, pad_value=0, padding_side=tokenizer.padding_side)
+        # short_cot_mask = short_cot_mask[:, :MAX_LEN]
+
         return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
             "labels": labels,
             "ans_mask": ans_mask,
             "rea_mask": rea_mask,
+            # "short_cot_mask": short_cot_mask,
             "instruction": [item["instruction"] for item in batch],
             "completion": [item["completion"] for item in batch],
         }
@@ -118,19 +126,24 @@ class DecoderDataset(Dataset):
         instruction = self.instructions[idx]
         completion = self.completions[idx]
 
-        instruction_tokens = self.tokenizer.apply_chat_template(
-                [
-        # {"role": "system", "content": ""},
-        {"role": "user", "content": f"Please reason step by step, and put your final answer within \\boxed{{}}. {prompt}"},
-    ],
-                    tokenize=True,
-                    add_generation_prompt=True,
-                )
+        keyword = "Please reason step by step, and put your final answer within \\boxed{{}}."
+        if instruction.find(keyword) == -1:
+            instruction_tokens = self.tokenizer.apply_chat_template(
+                    [
+            # {"role": "system", "content": ""},
+            {"role": "user", "content": f"{instruction} Please reason step by step, and put your final answer within \\boxed{{}}."},
+        ],
+                        tokenize=True,
+                        add_generation_prompt=True,
+                    )
 
+        # completion_tokens, completion_rea_mask, completion_ans_mask, short_cot_mask = create_ans_rea_mask(completion, self.tokenizer)
         completion_tokens, completion_rea_mask, completion_ans_mask = create_ans_rea_mask(completion, self.tokenizer)
-        
         rea_mask = [0]*len(instruction_tokens) + completion_rea_mask
         ans_mask = [0]*len(instruction_tokens) + completion_ans_mask
+        rea_mask = rea_mask[1:] + [0.]
+        ans_mask = ans_mask[1:] + [0.]
+        # short_cot_mask = [0]*len(instruction_tokens) + short_cot_mask
 
         input_ids = instruction_tokens + completion_tokens
         # we don't optimize Cross-Entropy loss for instruction tokens
@@ -147,6 +160,7 @@ class DecoderDataset(Dataset):
             "labels": labels,
             "ans_mask": ans_mask,
             "rea_mask": rea_mask,
+            # "short_cot_mask": short_cot_mask,
             "instruction": instruction,
             "completion": completion,
         }

@@ -8,7 +8,7 @@ import torch
 import time
 
 def train(stage, drop_rate):
-    config_path = "configs/icot.yaml"
+    config_path = "configs/control_icot.yaml"
     parser = transformers.HfArgumentParser(TrainingArguments)
 
     cfg = OmegaConf.load(config_path)
@@ -44,8 +44,9 @@ def train(stage, drop_rate):
     time.sleep(30)
 
 if __name__ == "__main__":
-    num_stages = 100
-    rate = 1/num_stages
-    for stage in range(num_stages):
-        drop_rate = rate*(stage+1)
-        train(stage, drop_rate)
+    # num_stages = 20
+    # rate = 1/num_stages
+    # for stage in range(num_stages):
+    #     drop_rate = rate*(stage+1)
+    #     train(stage, drop_rate)
+    train(0, 0)

@@ -86,13 +86,13 @@ if __name__ == "__main__":
 
     data_name = "math"
     if data_name == "gsm8k":
-        num_sequences = 16
+        num_sequences = 8
         original_inputs, all_gold_anses = read_gsm8k(train=train)
     elif data_name == 'deepscaler':
         num_sequences = 8
         original_inputs, all_gold_anses = read_deepscaler()
     elif data_name == 'math':
-        num_sequences = 16
+        num_sequences = 8
         original_inputs, all_gold_anses = read_MATH(train=train)
 
     # original_inputs, all_gold_anses = original_inputs[:10], all_gold_anses[:10]
@@ -104,7 +104,7 @@ if __name__ == "__main__":
             tokenizer.apply_chat_template(
                 [
         # {"role": "system", "content": ""},
-        {"role": "user", "content": f"Please reason step by step, and put your final answer within \\boxed{{}}. {prompt}"},
+        {"role": "user", "content": f"{prompt} Please reason step by step, and put your final answer within \\boxed{{}}."},
     ],
                 tokenize=False,
                 add_generation_prompt=True,

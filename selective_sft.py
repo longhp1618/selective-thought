@@ -5,11 +5,18 @@ from omegaconf import OmegaConf
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from data_module import GSM8KForLLAMA
 import torch
-import time
+# import time
+# time.sleep(25*20)
+import argparse
 
-drop_rate = 1
+parser = argparse.ArgumentParser(description="Training setting details")
+parser.add_argument('--task', type=str, choices=["math", "gsm8k"], default='gsm8k', help='Training Dataset')
+args = parser.parse_args()
 
-config_path = "configs/sft_rmall.yaml"
+drop_rate = 0
+
+
+config_path = f"configs/selective_{args.task}.yaml"
 parser = transformers.HfArgumentParser(TrainingArguments)
 
 cfg = OmegaConf.load(config_path)
@@ -19,7 +26,7 @@ training_args = parser.parse_dict(trainer_args_dict)[0]
 
 model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, attention_dropout=0.1)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token

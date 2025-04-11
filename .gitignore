@@ -37,4 +37,6 @@ datasets/*
 *.17
 *.18
 *.19
+saved_models/*
 # *.yaml
+*.txt
